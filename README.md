@@ -12,5 +12,9 @@
     eval_u.m can be found under helperOC/ValueFunctions
     scripts I added upon helperOC and LevelSet
 
-     helperOC/Dy
+     helperOC/dynSys/R4D_H4D_rel dir  **added relative dynamics based on KBM and computation of optimal controls
+     my_brs.m                         **to compute value function
+
+    display_brs.py   python scripy to generate .mat from .npy 
+    
       
