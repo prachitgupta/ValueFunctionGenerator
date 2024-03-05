@@ -1,4 +1,4 @@
-function [data, tau, extraOuts] = my_brs(grid_size)
+function [data, tau, extraOuts] = my_brs(grid_size,gridMin,gridMax)
     % 1. Run Backward Reachable Set (BRS) with a goal
     %     uMode = 'min' <-- goal
     %     minWith = 'none' <-- Set (not tube)
@@ -38,8 +38,8 @@ function [data, tau, extraOuts] = my_brs(grid_size)
     compTraj = false;
     
     %% Grid
-    grid_min = [-15; -5; 0; 1; 1]; % Lower corner of computation domain
-    grid_max = [15; 5; 2*pi ;12 ;12];    % Upper corner of computation domain
+    grid_min = gridMin; % Lower corner of computation domain
+    grid_max = gridMax;    % Upper corner of computation domain
     N = grid_size;         % Number of grid points per dimension
     pdDims = 3;               % 3rd dimension is periodic
     g = createGrid(grid_min, grid_max, N, pdDims);
@@ -47,9 +47,10 @@ function [data, tau, extraOuts] = my_brs(grid_size)
     % state space dimensions
     
     %% target set
-    R = 1;
+    R = 2;
     % data0 = shapeCylinder(grid,ignoreDims,center,radius)
-    data0 = shapeCylinder(g,3:5,[0,0,0,0,0],R);
+    data0 = shapeCylinder(g,3:5,[0,0],R);
+    %data0 = shapeRectangleByCorners(g,[0,0,-inf,-inf,-inf],[3,2,inf,inf,inf]);
     % also try shapeRectangleByCorners, shapeSphere, etc.
     
     %% time vector
@@ -82,7 +83,7 @@ function [data, tau, extraOuts] = my_brs(grid_size)
     
     % Define dynamic system
     % obj = DubinsCar(x, wMax, speed, dMax)
-    KBMCar = R4D_H4D_Rel([0, 0, 0, 0, 0, 0], uMin, uMax, dMin, dMax,1:5); %do dStep3 here
+    KBMCar = R4D_H4D_Rel([0, 0, 0, 0, 0], uMin, uMax, dMin, dMax,1:5); %do dStep3 here
     
     % Put grid and dynamic systems into schemeData
     schemeData.grid = g;
@@ -107,14 +108,14 @@ function [data, tau, extraOuts] = my_brs(grid_size)
     %% Compute value function
     
     %HJIextraArgs.visualize = true; %show plot
-    %HJIextraArgs.visualize.valueSet = 0;
-    %HJIextraArgs.visualize.initialValueSet = 1;
-    %HJIextraArgs.visualize.figNum = 1; %set figure number
-    %HJIextraArgs.visualize.deleteLastPlot = true; %delete previous plot as you update
+    HJIextraArgs.visualize.valueSet = 1;
+    HJIextraArgs.visualize.initialValueSet = 1;
+    HJIextraArgs.visualize.figNum = 1; %set figure number
+    HJIextraArgs.visualize.deleteLastPlot = true; %delete previous plot as you update
     
     % uncomment if you want to see a 2D slice
     HJIextraArgs.visualize.plotData.plotDims = [1 1 0 0 0]; %plot x, y
-    HJIextraArgs.visualize.plotData.projpt = [0,0,0]; %project at theta = 0
+    HJIextraArgs.visualize.plotData.projpt = [0,8,5]; %project at theta = 0
     HJIextraArgs.visualize.viewAngle = [0,90]; % view 2D
     % set target function.
     HJIextraArgs.targetFunction = data0;
@@ -129,7 +130,7 @@ function [data, tau, extraOuts] = my_brs(grid_size)
     if compTraj
       
       %set the initial state
-      xinit = [2, 2, 0,2,2];
+      xinit = [1, -1, 0,8,5];
       
       %check if this initial state is in the BRS/BRT
       %value = eval_u(g, data, x)
@@ -146,15 +147,15 @@ function [data, tau, extraOuts] = my_brs(grid_size)
         TrajextraArgs.fig_num = 2; %figure number
         
         %we want to see the first two dimensions (x and y)
-        TrajextraArgs.projDim = [1 1 0]; 
+        TrajextraArgs.projDim = [1 1 0 0 0]; 
         
         %flip data time points so we start from the beginning of time
-        dataTraj = flip(data,4);
+        dataTraj = flip(data,6);
         
         % [traj, traj_tau] = ...
         % computeOptTraj(g, data, tau, dynSys, extraArgs)
         [traj, traj_tau] = ...
-          computeOptTraj(g, dataTraj, tau2, dCar, TrajextraArgs);
+          computeOptTraj(g, dataTraj, tau, KBMCar, TrajextraArgs);
       
         figure(6)
         clf
@@ -173,7 +174,7 @@ function [data, tau, extraOuts] = my_brs(grid_size)
         xlim([-5 5])
         ylim([-5 5])
         % add the target set to that
-        [g2D, data2D] = proj(g, data0, [0 0 1]);
+        [g2D, data2D] = proj(g, data0, [0 0 1 1 1]);
         visSetIm(g2D, data2D, 'green');
         title('2D projection of the trajectory & target set')
         hold off
