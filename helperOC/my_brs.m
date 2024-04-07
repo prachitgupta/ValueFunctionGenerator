@@ -48,14 +48,15 @@ function [data, tau, extraOuts] = my_brs(grid_size,gridMin,gridMax)
     
     %% target set
     R = 2;
-    % data0 = shapeCylinder(grid,ignoreDims,center,radius)
-    data0 = shapeCylinder(g,3:5,[0,0],R);
-    %data0 = shapeRectangleByCorners(g,[0,0,-inf,-inf,-inf],[3,2,inf,inf,inf]);
+    %data0 = shapeCylinder(grid,ignoreDims,center,radius)
+    %data0 = shapeCylinder(g,3:5,[0,0],R);
+    %data0 = shapeRectangleByCorners(g,[0,0,-inf,-inf,-inf],[4,3,inf,inf,inf]);
+     data0 = shapeRectangleByCenter(g,[0,0,0,0,0],[4,3,inf,inf,inf]);
     % also try shapeRectangleByCorners, shapeSphere, etc.
     
     %% time vector
     t0 = 0;
-    tMax = 2;
+    tMax = 4.1;
     dt = 0.05;
     tau = t0:dt:tMax;
     
@@ -63,13 +64,14 @@ function [data, tau, extraOuts] = my_brs(grid_size,gridMin,gridMax)
     
     % input bounds
     aMax= 3;
-    curvatureMax = 0.2;
-    omegaMax  = 0.2;
+    aMin = -5;
+    curvatureMax = 0.325;
+    omegaMax  = pi/6;
 
-    uMin = [-aMax ; -curvatureMax];
+    uMin = [aMin ; -curvatureMax];
     uMax = [aMax ; curvatureMax];
 
-    dMin = [-aMax ; -omegaMax];
+    dMin = [aMin ; -omegaMax];
     dMax = [aMax ; omegaMax];
 
     % do dStep1 here
@@ -115,7 +117,7 @@ function [data, tau, extraOuts] = my_brs(grid_size,gridMin,gridMax)
     
     % uncomment if you want to see a 2D slice
     HJIextraArgs.visualize.plotData.plotDims = [1 1 0 0 0]; %plot x, y
-    HJIextraArgs.visualize.plotData.projpt = [0,8,5]; %project at theta = 0
+    HJIextraArgs.visualize.plotData.projpt = [pi/4,1,6]; %project at theta = 0
     HJIextraArgs.visualize.viewAngle = [0,90]; % view 2D
     % set target function.
     HJIextraArgs.targetFunction = data0;
